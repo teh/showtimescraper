@@ -9,27 +9,22 @@ Showtime = collections.namedtuple('Showtime', 'title date time')
 
 def parse_cinema_ids(html):
     html = etree.HTML(html)
-    result = []
     for option in html.xpath('//select[@id="cinema"]/option'):
         id_ = option.get('value')
         if id_.isdigit():
-            result.append(int(id_))
-    return result
+            yield int(id_)
 
 def parse_cinema(html):
     html = etree.HTML(html)
-    result = []
     for film in html.findall('.//li[@class="film-detail"]'):
         title = ''.join(film.find('.//h3[@class="filmtitle"]').itertext()).strip()
         tt = film.find('.//div[@class="timetable"]')
         for dl in tt.findall('dl'):
             date = dl.find('dt').text
             for time in dl.findall('dd/span'):
-                result.append(Showtime(title, date, time.text))
+                yield Showtime(title, date, time.text)
             for time in dl.findall('dd/a'):
-                result.append(Showtime(title, date, time.text))
-            
-    return result
+                yield Showtime(title, date, time.text)
 
 #ids = parse_cinema_ids(requests.get(ROOT_URL).content)
-print parse_cinema(requests.get(CINEMA_URL.format(23)).content)
+print parse_cinema(requests.get(CINEMA_URL.format(23)).content).next()
